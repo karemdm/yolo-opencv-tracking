@@ -8,14 +8,21 @@ from ultralytics import YOLO
 
 
 # Mapeamento de tipos de tracker para suas respectivas funções de criação
+def _tracker_factory(name: str):
+    """Return cv2.Tracker<name>_create, falling back to cv2.legacy (OpenCV >= 4.5.1)."""
+    attr = f"Tracker{name}_create"
+    if hasattr(cv2, attr):
+        return getattr(cv2, attr)
+    legacy = getattr(cv2, "legacy", None)
+    if legacy is not None and hasattr(legacy, attr):
+        return getattr(legacy, attr)
+    return None
+
+
 TRACKER_CREATORS = {
-    "CSRT": cv2.TrackerCSRT_create,
-    "KCF": cv2.TrackerKCF_create,
-    "MOSSE": cv2.TrackerMOSSE_create,
-    "MIL": cv2.TrackerMIL_create,
-    "MedianFlow": cv2.TrackerMedianFlow_create,
-    "TLD": cv2.TrackerTLD_create,
-    "Boosting": cv2.TrackerBoosting_create,
+    name: factory
+    for name in ("CSRT", "KCF", "MOSSE", "MIL", "MedianFlow", "TLD", "Boosting")
+    if (factory := _tracker_factory(name)) is not None
 }
 
 
@@ -263,7 +270,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input",
         type=str,
-        default="client.mp4",
+        required=True,
         help="Caminho para o vídeo de entrada",
     )
     parser.add_argument(
