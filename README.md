@@ -43,7 +43,7 @@ The YOLO weights (`yolov8n.pt` by default) are downloaded automatically by Ultra
 python track_objects.py --input path/to/video.mp4
 ```
 
-The output is saved as `<input name>_proc.mp4` next to the input video, unless `--output` is given (a file path or a directory).
+The output is saved as `<input name>_proc<ext>` (same extension as the input, `mp4v` codec) next to the input video, unless `--output` is given: a file path, or a directory (an existing one, or a path ending with `/`, which is created if needed). If the video reports 0 FPS, 30 FPS is used for the output.
 
 ```bash
 python track_objects.py --input video.mp4 --output results/ --tracker CSRT --model yolov8s.pt
@@ -54,7 +54,7 @@ python track_objects.py --input video.mp4 --output results/ --tracker CSRT --mod
 | Argument | Default | Description |
 |---|---|---|
 | `--input` | *(required)* | input video |
-| `--output` | `<input>_proc.mp4` | output video file or directory |
+| `--output` | `<input>_proc<ext>` next to the input | output video file or directory |
 | `--model` | `yolov8n.pt` | YOLOv8 weights |
 | `--tracker` | `KCF` | OpenCV tracker type |
 | `--start_frame` | `0` | first frame to process |
@@ -78,6 +78,12 @@ The choices offered by `--tracker` depend on your OpenCV build; trackers that ar
 | **MedianFlow** | smooth, slow motion (legacy) |
 | **TLD** | long-term, slow (legacy) |
 | **Boosting** | oldest, mainly for comparison (legacy) |
+
+## Limitations
+
+- Matching uses each OpenCV tracker's own prediction; a matched tracker is not re-initialised on the new detection box, so long tracks can drift.
+- Only boxes matched to a tracker in the current frame are drawn (a tracker that is coasting without a detection is not drawn).
+- Ultralytics prints one log line per frame.
 
 ## Project structure
 
